@@ -7,13 +7,19 @@ type Todo = { _id: string; title: string; completed: boolean };
 export default function Home() {
   const [todos, setTodos] = useState<Todo[]>([]);
   const [title, setTitle] = useState("");
+  const [reloadKey, setReloadKey] = useState(0);
 
-  async function load() {
-    const res = await fetch("/api/todos");
-    setTodos(await res.json());
-  }
-
-  useEffect(() => { load(); }, []);
+  useEffect(() => {
+    let ignore = false;
+    fetch("/api/todos")
+      .then((res) => res.json())
+      .then((data: Todo[]) => {
+        if (!ignore) setTodos(data);
+      });
+    return () => {
+      ignore = true;
+    };
+  }, [reloadKey]);
 
   async function add(e: React.FormEvent) {
     e.preventDefault();
@@ -24,7 +30,7 @@ export default function Home() {
       body: JSON.stringify({ title }),
     });
     setTitle("");
-    load();
+    setReloadKey((k) => k + 1);
   }
 
   async function toggle(t: Todo) {
@@ -33,12 +39,12 @@ export default function Home() {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ completed: !t.completed }),
     });
-    load();
+    setReloadKey((k) => k + 1);
   }
 
   async function remove(id: string) {
     await fetch(`/api/todos/${id}`, { method: "DELETE" });
-    load();
+    setReloadKey((k) => k + 1);
   }
 
   return (

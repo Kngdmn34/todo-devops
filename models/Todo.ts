@@ -1,4 +1,4 @@
-import mongoose, { Schema, InferSchemaType, models, model } from "mongoose";
+import { Schema, InferSchemaType, models, model } from "mongoose";
 
 const TodoSchema = new Schema(
   {

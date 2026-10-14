@@ -2,7 +2,6 @@ import mongoose from "mongoose";
 
 type Cached = { conn: typeof mongoose | null; promise: Promise<typeof mongoose> | null };
 declare global {
-  // eslint-disable-next-line no-var
   var _mongoose: Cached | undefined;
 }
 
