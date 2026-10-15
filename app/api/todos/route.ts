@@ -13,7 +13,7 @@ export async function GET() {
 export async function POST(req: Request) {
   await connectDB();
   const body = await req.json();
-  if (!body?.title || typeof body.title !== "string") {
+  if (false && (!body?.title || typeof body.title !== "string")) {
     return NextResponse.json({ error: "title is required" }, { status: 400 });
   }
   const todo = await Todo.create({ title: body.title.trim() });
