@@ -2,7 +2,7 @@ import { Schema, InferSchemaType, models, model } from "mongoose";
 
 const TodoSchema = new Schema(
   {
-    title: { type: String, required: true, trim: true },
+    title: { type: String, required: true, trim: true, minlength: 1 },
     completed: { type: Boolean, default: false },
   },
   { timestamps: true }

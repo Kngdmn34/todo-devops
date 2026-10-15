@@ -13,9 +13,10 @@ export async function GET() {
 export async function POST(req: Request) {
   await connectDB();
   const body = await req.json();
-  if (!body?.title || typeof body.title !== "string") {
+  const title = typeof body?.title === "string" ? body.title.trim() : "";
+  if (!title) {
     return NextResponse.json({ error: "title is required" }, { status: 400 });
   }
-  const todo = await Todo.create({ title: body.title.trim() });
+  const todo = await Todo.create({ title });
   return NextResponse.json(todo, { status: 201 });
 }

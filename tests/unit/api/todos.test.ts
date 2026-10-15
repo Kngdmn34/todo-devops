@@ -53,8 +53,24 @@ describe("POST /api/todos", () => {
     const res = await POST(req);
     const body = await res.json();
     expect(body.title).toBe("padded");
+   
+    
   });
+
+  it("rejects whitespace-only title", async () => {
+  const req = new Request("http://localhost/api/todos", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ title: "    " }),
+  });
+  const res = await POST(req);
+  expect(res.status).toBe(400);
 });
+
+
+});
+
+
 
 describe("GET /api/todos", () => {
   it("returns empty array initially", async () => {

@@ -12,7 +12,9 @@
     "test:e2e": "playwright test",
     "test:e2e:ui": "playwright test --ui",
     "e2e:up": "docker compose up -d mongo",
-    "e2e:down": "docker compose stop mongo"
+    "e2e:down": "docker compose stop mongo",
+    "test": "vitest run",
+    "test:watch": "vitest"
   },
   "dependencies": {
     "mongoose": "^9.11.2",
