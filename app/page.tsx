@@ -5,21 +5,16 @@ import { useEffect, useState } from "react";
 type Todo = { _id: string; title: string; completed: boolean };
 
 export default function Home() {
-  const [todos, setTodos] = useState<Todo[]>([]);
+  const [todos, setTodos] = useState<Todo[] | null>(null);
   const [title, setTitle] = useState("");
   const [reloadKey, setReloadKey] = useState(0);
-  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     let ignore = false;
-    setLoading(true);
     fetch("/api/todos")
       .then((res) => res.json())
       .then((data: Todo[]) => {
-        if (!ignore) {
-          setTodos(data);
-          setLoading(false);
-        }
+        if (!ignore) setTodos(data);
       });
     return () => {
       ignore = true;
@@ -52,7 +47,7 @@ export default function Home() {
     setReloadKey((k) => k + 1);
   }
 
-  const remaining = todos.filter((t) => !t.completed).length;
+  const remaining = (todos ?? []).filter((t) => !t.completed).length;
 
   return (
     <main className="relative min-h-screen overflow-hidden bg-gradient-to-br from-indigo-950 via-purple-950 to-slate-950 text-white">
@@ -69,9 +64,11 @@ export default function Home() {
               Todo DevOps
             </h1>
             <p className="mt-2 text-sm text-white/60">
-              {todos.length === 0
-                ? "Nothing here yet. Add your first task."
-                : `${remaining} of ${todos.length} remaining`}
+              {todos === null
+                ? "Loading..."
+                : todos.length === 0
+                  ? "Nothing here yet. Add your first task."
+                  : `${remaining} of ${todos.length} remaining`}
             </p>
           </div>
 
@@ -96,13 +93,13 @@ export default function Home() {
 
             {/* List */}
             <ul className="space-y-2">
-              {loading && (
+              {todos === null && (
                 <li className="py-8 text-center text-sm text-white/40">
                   Loading...
                 </li>
               )}
 
-              {!loading && todos.length === 0 && (
+              {todos?.length === 0 && (
                 <li className="py-12 text-center">
                   <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-white/5 text-2xl">
                     ✨
@@ -113,7 +110,7 @@ export default function Home() {
                 </li>
               )}
 
-              {todos.map((t) => (
+              {todos?.map((t) => (
                 <li
                   key={t._id}
                   className="group flex items-center gap-3 rounded-xl border border-white/5 bg-white/5 px-4 py-3 transition hover:border-white/20 hover:bg-white/10"
