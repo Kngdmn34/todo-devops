@@ -10,7 +10,7 @@ export async function PATCH(req: Request, { params }: Params) {
   await connectDB();
   const { id } = await params;
   const body = await req.json();
-  const updated = await Todo.findByIdAndUpdate(id, body, { new: true });
+  const updated = await Todo.findByIdAndUpdate(id, body, { returnDocument: 'after' });
   if (!updated) return NextResponse.json({ error: "not found" }, { status: 404 });
   return NextResponse.json(updated);
 }
