@@ -82,7 +82,7 @@ jobs:
             exit-code: '1'
             ignore-unfixed: true
             severity: 'CRITICAL,HIGH'
-              vuln-type: 'os,library'
+            vuln-type: 'os,library'
 
     
   deploy:
@@ -100,4 +100,4 @@ jobs:
         env:
           FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
       
-    
+      
