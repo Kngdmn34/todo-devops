@@ -83,6 +83,7 @@ jobs:
           ignore-unfixed: true
           severity: 'CRITICAL,HIGH'
           vuln-type: 'os,library'
+          skip-dirs: '/usr/local/lib/node_modules'
 
   deploy:
     name: Deploy to Fly.io
