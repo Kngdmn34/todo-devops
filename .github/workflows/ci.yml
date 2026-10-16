@@ -25,6 +25,8 @@ jobs:
 
        - name: install
          run: npm ci
+       - name: npm audit
+         run: npm audit --audit-level=high --omit=dev
        - name: lint
          run: npm run lint
        - name: build
