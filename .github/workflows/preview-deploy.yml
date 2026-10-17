@@ -25,10 +25,7 @@ jobs:
           FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
 
       - name: Set preview DB secret
-        run: |
-          flyctl secrets set MONGODB_URI="${{ secrets.MONGO_BASE_URI }}/todo-devops-pr-${{ github.event.pull_request.number }}?retryWrites=true&w=majority \
-            --app todo-devops-pr-${{ github.event.pull_request.number }} \
-            --stage
+        run: flyctl secrets set MONGODB_URI="${{ secrets.MONGO_BASE_URI }}/todo-devops-pr-${{ github.event.pull_request.number }}?retryWrites=true&w=majority"   --app todo-devops-pr-${{ github.event.pull_request.number }}   --stage
         env:
           FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
 
