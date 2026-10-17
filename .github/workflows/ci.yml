@@ -1,93 +1,116 @@
 name: CI
 
-on: 
-
+on:
   push:
-    branches: [main]
+    branches:
+      - main
   pull_request:
-    branches: [main]
+    branches:
+      - main
 
 jobs:
-   build:
-      runs-on: ubuntu-latest
-      steps:
-        - name: checkout
-          uses: actions/checkout@v4
-        - name: Setup node24
-          uses: actions/setup-node@v4
-          with: 
-            node-version: 24
-            cache: npm
-        - name: clean install
-          run: npm ci
-        - name: test before build
-          run: npm run lint
-        - name: run build
-          run: npm run build
-          env:
-            NEXT_TELEMETRY_DISABLED: 1
-   test:
-       name: Unit test
-       runs-on: ubuntu-latest
-       services:
-          mongo: 
-            image: mongo:7
-            ports:
-              - 27017:27017
-       steps:
-          - name: checkout
-            uses: actions/checkout@v4
-          - name: setup node 24
-            uses: actions/setup-node@v4
-            with:
-              node-version: 24
-              cache: npm
-          - name: clean install
-            run: npm ci
-          - name: run test unit
-            run: npm run test:unit
-            env: 
-              MONGODB_URI: mongodb://localhost:27017/todo-devops-test
+  build:
+    name: Build and Lint
+    runs-on: ubuntu-latest
 
-   docker:
-      name: Docker build
-      runs-on: ubuntu-latest
-      needs: [build, test]
-      steps:
-        - name: Checkout
-          uses: actions/checkout@v4
-        - name: Setup Buildx
-          uses: docker/setup-buildx-action@v3
-        - name: Build image
-          uses: docker/build-push-action@v6
-          with:
-            context: .
-            push: false
-            load: true
-            tags: todo-devops:ci
-            cache-from: type=gha
-            cache-to: type=gha,mode=max
-        - name: Trivy scan
-          uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25  # v0.36.0
-          with:
-            image-ref: 'todo-devops:ci'
-            format: 'table'
-            exit-code: '1'
-            ignore-unfixed: true
-            severity: 'CRITICAL,HIGH'
-            vuln-type: 'os,library'
-            skip-dirs: '/usr/local/lib/node_modules'
-    deploy:
-      name: Deploy to Fly.io
-      runs-on: ubuntu-latest
-      needs: docker
-      if: github.ref == 'refs/heads/main' && github.event_name == 'push'
-      steps:
-        - name: Checkout
-          uses: actions/checkout@v4
-        - name: Setup Flyctl
-          uses: superfly/flyctl-actions/setup-flyctl@fc53c09e1bc3be6f54706524e3b82c4f462f77be  # v1.5
-        - name: Deploy
-          run: flyctl deploy --remote-only
-          env:
-            FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js 24
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run lint
+        run: npm run lint
+
+      - name: Build application
+        run: npm run build
+        env:
+          NEXT_TELEMETRY_DISABLED: 1
+
+  test:
+    name: Unit Tests
+    runs-on: ubuntu-latest
+
+    services:
+      mongo:
+        image: mongo:7
+        ports:
+          - 27017:27017
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js 24
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run unit tests
+        run: npm run test:unit
+        env:
+          MONGODB_URI: mongodb://localhost:27017/todo-devops-test
+
+  docker:
+    name: Docker Build and Security Scan
+    runs-on: ubuntu-latest
+    needs:
+      - build
+      - test
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build Docker image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: false
+          load: true
+          tags: todo-devops:ci
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Run Trivy vulnerability scan
+        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
+        with:
+          image-ref: todo-devops:ci
+          format: table
+          exit-code: "1"
+          ignore-unfixed: true
+          severity: CRITICAL,HIGH
+          vuln-type: os,library
+          skip-dirs: /usr/local/lib/node_modules
+
+  deploy:
+    name: Deploy to Fly.io
+    runs-on: ubuntu-latest
+    needs: docker
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Flyctl
+        uses: superfly/flyctl-actions/setup-flyctl@fc53c09e1bc3be6f54706524e3b82c4f462f77be # v1.5
+
+      - name: Deploy application
+        run: flyctl deploy --remote-only
+        env:
+          FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
