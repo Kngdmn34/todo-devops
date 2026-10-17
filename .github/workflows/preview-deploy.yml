@@ -1,0 +1,53 @@
+name: Preview Deploy
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]   # fires on new PR, new commits, reopened PR
+
+concurrency:
+  group: preview-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  deploy-preview:
+    name: Deploy PR preview
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Flyctl
+        uses: superfly/flyctl-actions/setup-flyctl@fc53c09e1bc3be6f54706524e3b82c4f462f77be  # v1.5
+
+      - name: Create Fly app (if it doesn't exist)
+        run: flyctl apps create todo-devops-pr-${{ github.event.pull_request.number }} || true
+        env:
+          FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
+
+      - name: Set preview DB secret
+        run: |
+          flyctl secrets set MONGODB_URI="${{ secrets.MONGO_BASE_URI }}/todo-devops-pr-${{ github.event.pull_request.number }}?retryWrites=true&w=majority \
+            --app todo-devops-pr-${{ github.event.pull_request.number }} \
+            --stage
+        env:
+          FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
+
+      - name: Deploy to preview app
+        run: |
+          flyctl deploy \
+            --app todo-devops-pr-${{ github.event.pull_request.number }} \
+            --remote-only \
+            --ha=false
+        env:
+          FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
+
+      - name: Comment preview URL on PR
+        uses: actions/github-script@v7
+        with:
+          script: |
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: '🚀 Preview deployed: https://todo-devops-pr-${{ github.event.pull_request.number }}.fly.dev'
+            })

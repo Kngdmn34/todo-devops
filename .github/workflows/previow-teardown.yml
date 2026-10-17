@@ -1,0 +1,18 @@
+name: Preview Teardown
+
+on:
+  pull_request:
+    types: [closed]          # ← What triggers teardown? (Hint: look at Q3 from earlier)
+
+jobs:
+  destroy-preview:
+    name: Destroy PR preview
+    runs-on: ubuntu-latest
+    steps:
+      - name: Setup Flyctl
+        uses: superfly/flyctl-actions/setup-flyctl@fc53c09e1bc3be6f54706524e3b82c4f462f77be  # v1.5
+
+      - name: Destroy Fly app
+        run: flyctl apps destroy todo-devops-pr-${{ github.event.pull_request.number }} --yes || true
+        env:
+          FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
