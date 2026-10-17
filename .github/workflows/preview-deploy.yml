@@ -2,7 +2,7 @@ name: Preview Deploy
 
 on:
   pull_request:
-    types: [opened, synchronize, reopened]   # fires on new PR, new commits, reopened PR
+    types: [opened, synchronize, reopened]
 
 concurrency:
   group: preview-${{ github.event.pull_request.number }}
@@ -25,21 +25,12 @@ jobs:
           FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
 
       - name: Set preview DB secret
-<<<<<<< HEAD
-        run:  flyctl secrets set MONGODB_URI="${{ secrets.MONGO_BASE_URI }}/todo-devops-pr-${{ github.event.pull_request.number }}?retryWrites=true&w=majority    --app todo-devops-pr-${{ github.event.pull_request.number }} --stage
-           
-=======
-        run: flyctl secrets set MONGODB_URI="${{ secrets.MONGO_BASE_URI }}/todo-devops-pr-${{ github.event.pull_request.number }}?retryWrites=true&w=majority"   --app todo-devops-pr-${{ github.event.pull_request.number }}   --stage
->>>>>>> main
+        run: flyctl secrets set MONGODB_URI="${{ secrets.MONGO_BASE_URI }}/todo-devops-pr-${{ github.event.pull_request.number }}?retryWrites=true&w=majority" --app todo-devops-pr-${{ github.event.pull_request.number }} --stage
         env:
           FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
 
       - name: Deploy to preview app
-        run: |
-          flyctl deploy \
-            --app todo-devops-pr-${{ github.event.pull_request.number }} \
-            --remote-only \
-            --ha=false
+        run: flyctl deploy --app todo-devops-pr-${{ github.event.pull_request.number }} --remote-only --ha=false
         env:
           FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
 
