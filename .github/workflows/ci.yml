@@ -26,3 +26,26 @@ jobs:
           run: npm run build
           env:
             NEXT_TELEMETRY_DISABLED: 1
+   test:
+       name: Unit test
+       runs-on: ubuntu-latest
+       services:
+          mongo: 
+            image: mongo:7
+            ports:
+              - 27017:27017
+       steps:
+          - name: checkout
+            uses: actions/checkout@v4
+          - name: setup node 24
+            uses: actions/setup-node@v4
+            with:
+              node-version: 24
+              cache: npm
+          - name: clean install
+            run: npm ci
+          - name: run test unit
+            run: npm run test:unit
+            env: 
+              MONGODB_URI: mongodb://localhost:27017/todo-devops-test
+            
